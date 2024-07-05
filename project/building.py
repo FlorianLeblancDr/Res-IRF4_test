@@ -5775,7 +5775,7 @@ class AgentBuildings(ThermalBuildings):
                     energy_saved_renovation[key] = energy_saved.sum().sum() / replacement_eligible.sum()
 
                 # subsidies - details: policies amount and number of beneficiaries, by decile
-                if key in ['mpr_performance', 'mpr_multifamily_updated', 'mpr_multifamily_deep']:
+                if key in ['mpr_performance', 'mpr_multifamily', 'mpr_multifamily_updated', 'mpr_multifamily_deep']:
                     amount_tmp = subsidies_details_renovation[key]
                     subsidies_details_by_decile = amount_tmp.groupby(['Income owner']).sum()
                     amount_by_decile = subsidies_details_by_decile.T.sum()
