@@ -1101,8 +1101,10 @@ class AgentBuildings(ThermalBuildings):
             'subsidies_count': {},
             'subsidies_average': {},
             'cost_average': {},
-            'replacement_eligible': {}
-        }
+            'replacement_eligible': {},
+            'replacement_eligible_income': {}
+
+            }
 
         for k, item in ini.items():
             self._heater_store[k] = item
@@ -2139,6 +2141,9 @@ class AgentBuildings(ThermalBuildings):
 
             self._heater_store['replacement_eligible'].update(
                 {key: replacement_eligible.groupby('Housing type').sum()})
+
+            self._heater_store['replacement_eligible_income'].update(
+                {key: replacement_eligible.groupby('Income owner').sum()})
 
             if eligible.sum().sum() > 0:
                 self._heater_store['subsidies_average'].update({key: sub.sum().sum() / replacement_eligible.sum()})
@@ -5745,7 +5750,7 @@ class AgentBuildings(ThermalBuildings):
                 self._balance_state_ini = output['Balance state (Billion euro)']
 
             # subsidies - details: policies amount and number of beneficiaries
-            subsidies_details_renovation, replacement_eligible_renovation, subsidies_average_renovation, cost_average_renovation = {}, {}, {}, {}
+            subsidies_details_renovation, replacement_eligible_renovation, replacement_eligible_renovation_income, subsidies_average_renovation, cost_average_renovation = {}, {}, {}, {}, {}
             energy_saved_renovation = {}
             for key, sub in self._renovation_store['subsidies_details_households'].items():
                 subsidies_details_renovation[key] = (
@@ -5760,6 +5765,7 @@ class AgentBuildings(ThermalBuildings):
 
                 replacement_eligible = self._replaced_by.fillna(0).sum(axis=1) * eligible
                 replacement_eligible_renovation[key] = replacement_eligible.groupby('Housing type').sum()
+                replacement_eligible_renovation_income[key] = replacement_eligible.groupby('Income owner').sum()
 
                 if eligible.sum().sum() == 0:
                     subsidies_average_renovation[key] = 0
@@ -5791,15 +5797,17 @@ class AgentBuildings(ThermalBuildings):
             del self._renovation_store['subsidies_details_households']
             gc.collect()
 
-            subsidies, replacement_eligible, sub_count, cost_average, energy_average = None, None, None, None, None
+            subsidies, replacement_eligible, sub_count, sub_count_income, cost_average, energy_average = None, None, None, None, None, None
             for gest, subsidies_details in {'heater': self._heater_store['subsidies_details'],
                                             'insulation': subsidies_details_renovation}.items():
                 if gest == 'heater':
                     sub_count = DataFrame(self._heater_store['replacement_eligible'], dtype=float)
+                    sub_count_income = DataFrame(self._heater_store['replacement_eligible_income'], dtype=float)
                     cost_average = Series(self._heater_store['cost_average'], dtype=float)
 
                 elif gest == 'insulation':
                     sub_count = DataFrame(replacement_eligible_renovation, dtype=float)
+                    sub_count_income = DataFrame(replacement_eligible_renovation_income, dtype=float)
                     cost_average = Series(cost_average_renovation, dtype=float)
                     energy_average = Series(energy_saved_renovation, dtype=float)
 
@@ -5811,14 +5819,27 @@ class AgentBuildings(ThermalBuildings):
                         use_subsidies = inputs['use_subsidies'].loc['{} {}'.format(i, gest)]
                         subsidies_details[i] *= use_subsidies
                         sub_count[i] *= use_subsidies
+                        sub_count_income[i] *= use_subsidies
 
                     temp = sub_count[i].copy()
+                    temp_income = sub_count_income[i].copy()
+
                     temp.index = temp.index.map(
                         lambda x: '{} {} {} (Thousand households)'.format(i.capitalize().replace('_', ' '), gest, x))
                     output.update(temp.T / 10 ** 3 / step)
 
+                    temp_income.index = temp_income.index.map(
+                        lambda x: '{} {} {} (Thousand households)'.format(i.capitalize().replace('_', ' '), gest, x))
+                    output.update(temp_income.T / 10 ** 3 / step)
+
                     output.update({'{} {} (Thousand households)'.format(i.capitalize().replace('_', ' '), gest):
                                        sub_count[i].sum() / 1e3 / step})
+                    
+                    output['Average cost {} {} (euro)'.format(i.capitalize().replace('_', ' '), gest)] = cost_average.loc[i]
+
+                    output.update({'{} {} (Thousand households)'.format(i.capitalize().replace('_', ' '), gest):
+                                       sub_count_income[i].sum() / 1e3 / step})
+                    
                     output['Average cost {} {} (euro)'.format(i.capitalize().replace('_', ' '), gest)] = cost_average.loc[i]
 
                     if gest == 'insulation' and i in energy_average.keys():
