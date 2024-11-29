@@ -699,6 +699,12 @@ def res_irf(config, path, level_logger='DEBUG'):
                                              default_quality=config['technical'].get('default_quality'),
                                              credit_constraint=config['financing_cost'].get('credit_constraint', True))
 
+            if path is not None:
+                buildings.logger.info('Writing output in {}'.format(path))
+
+                if config['output'] == 'full':
+                    buildings._stock.to_csv(os.path.join(path, 'stock_{}.csv'.format(year)))
+                    
             stock = pd.concat((stock, s), axis=1)
             stock.index.names = s.index.names
             output = pd.concat((output, o), axis=1)
