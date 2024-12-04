@@ -60,7 +60,7 @@
       "insulation": false,
       "no_heating_switch": false,
       "collective_boiler": false,
-      "no_natural_replacement": true
+      "no_natural_replacement": false
     }
   }
 }
