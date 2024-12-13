@@ -35,7 +35,7 @@
   },
   "Reference": {
     "file": "project/config/reference_2023.json",
-    "end": 2024,
+    "end": 2031,
     "policies": {
       "file": "project/input/policies/policies_2024.json"
     },
