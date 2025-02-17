@@ -4,6 +4,8 @@
 /project/input/revealed_data/.DS_Store
 .DS_Store
 .idea
+.env*
+.vscode/
 /ResIRF.egg-info/
 /project/test.py
 /project/input/prices/
