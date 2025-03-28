@@ -11,7 +11,7 @@
     "add_policies": null,
     "remove_policies": null,
     "policies_scenarios": null,
-    "no_natural_replacement": null
+    "no_natural_replacement": false
   },
   "sensitivity": {
     "activated": false
@@ -32,7 +32,7 @@
   "Reference": {
     "file": "project/config/reference.json",
     "step": 1,
-    "end": 2020,
+    "end": 2025,
     "policies": {
       "file": "project/input/policies/policies_2024.json",
       "restriction_gas": {
@@ -44,7 +44,8 @@
       }
     },
     "simple": {
-      "no_policy_heater": false
+      "no_policy_heater": false,
+      "quintiles": false
     }
   }
 }

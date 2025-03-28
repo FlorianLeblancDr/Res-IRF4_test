@@ -2,7 +2,7 @@
     "end": 2051,
     "step": 1,
     "output": "full",
-    "start": 2017,
+    "start": 2022,
     "building_stock": "project/input/stock/buildingstock_sdes2018_medium_3.csv",
     "financing_cost": {
       "activated": true,
@@ -103,7 +103,7 @@
       "income": "project/input/macro/income.csv",
       "income_rate": 0.008,
       "rotation_rate": "project/input/macro/rotation_rate.csv",
-      "consumption_ini": "project/input/macro/consumption_ini.csv",
+      "consumption_ini": "project/input/macro/consumption_ini_agg.csv",
       "present_discount_rate": "project/input/investment/present_discount_rate.csv",
       "population": null,
       "surface_built": null,
@@ -118,7 +118,7 @@
     "health_cost_income": "project/input/policies/health_cost_income.csv",
     "carbon_value": "project/input/policies/carbon_value.csv",
     "policies": {
-      "file": "project/input/policies/policies_2021.json"
+      "file": "project/policies/policies_2024.json"
     },
     "simple": {
       "figures": true,
@@ -134,12 +134,12 @@
       "income_constant": false,
       "prices_constant": false,
       "heating_system": {
-        "Oil fuel-Standard boiler": "Oil fuel-Performance boiler",
-        "Natural gas-Standard boiler": "Natural gas-Performance boiler",
-        "Wood fuel-Standard boiler": "Wood fuel-Performance boiler",
-        "Natural gas-Collective boiler": "Natural gas-Performance boiler",
-        "Oil fuel-Collective boiler": "Oil fuel-Performance boiler",
-        "Electricity-Heat pump air": "Electricity-Heat pump water"
+      "Oil fuel-Standard boiler": "Oil fuel-Performance boiler",
+      "Natural gas-Standard boiler": "Natural gas-Performance boiler",
+      "Wood fuel-Standard boiler": "Wood fuel-Performance boiler",
+      "Natural gas-Collective boiler": "Natural gas-Performance boiler",
+      "Oil fuel-Collective boiler": "Oil fuel-Performance boiler",
+      "Electricity-Heat pump air": "Electricity-Heat pump water"
       },
       "insulation": false,
       "no_heating_switch": false,

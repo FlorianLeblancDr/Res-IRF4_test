@@ -19,6 +19,8 @@
 /project/config/validation/
 /project/test
 /project/input/stock/buildingstock_sdes2018_medium_3.csv
+/project/input/stock/20241205_buildingstock_sdes2023_medium_3.csv
+/project/input/stock/20241205_buildingstock_sdes2023_update.csv
 /project/analysis/
 /project/input/macro/_old/
 /project/input/policies/_old/
@@ -26,6 +28,8 @@
 /project/input/revealed_data/_old/
 /project/config/coupling/old/
 /project/input/investment/_old/
+/project/input/sfec/
+/project/config/sfec/
 
 
 # Byte-compiled / optimized / DLL files
