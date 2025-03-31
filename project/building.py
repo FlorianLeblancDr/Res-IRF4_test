@@ -5300,6 +5300,15 @@ class AgentBuildings(ThermalBuildings):
         temp.index = temp.index.map(lambda x: 'Stock {} (Million)'.format(x))
         output.update(temp.T / 10 ** 6)
 
+        # ajout de la climatisation dans les sorties de Res-IRF
+        temp = self.stock.groupby('Cooling system').sum()
+        cooler = {'Electricity-Heat pump air':'Cooling heat pump air' , 
+                  'Electricity-Portable':'Cooling portable unit', 
+                  'None':'No cooling system'}
+        for k,v in cooler.items():
+            if k in temp.index:
+                output['Stock {} (Million)'.format(v)] = temp.loc[k] / 10 ** 6
+
         # energy expenditures considering back-up cost
         prices_reindex = prices.reindex(self.energy).set_axis(self.stock.index, axis=0)
         energy_expenditure = consumption * coefficient_backup * prices_reindex
@@ -5344,7 +5353,7 @@ class AgentBuildings(ThermalBuildings):
                       i not in ['Heater replacement', 'Heating system final']]
 
             names = ['Heater replacement', 'Existing', 'Occupancy status', 'Income owner', 'Housing type', 'Wall',
-                     'Floor', 'Roof', 'Windows', 'Heating system', 'Heating system final']
+                     'Floor', 'Roof', 'Windows', 'Heating system', 'Cooling system', 'Heating system final']
             self._replaced_by.index = self._replaced_by.index.reorder_levels(names)
             self._renovation_store['discount'] = self._renovation_store['discount'].groupby(levels).mean()
 
