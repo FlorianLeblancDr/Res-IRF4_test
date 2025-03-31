@@ -1,0 +1,25 @@
+﻿Housing type,Heating system,Cooling system,Year,Value
+Multi-family,,Electricity-Heat pump air,2015,0
+Multi-family,,Electricity-Portable,2015,0
+Multi-family,,None,2015,1
+Single-family,,Electricity-Heat pump air,2015,0
+Single-family,,Electricity-Portable,2015,0
+Single-family,,None,2015,1
+Multi-family,,Electricity-Heat pump air,2020,0
+Multi-family,,Electricity-Portable,2020,0
+Multi-family,,None,2020,1
+Single-family,,Electricity-Heat pump air,2020,0
+Single-family,,Electricity-Portable,2020,0
+Single-family,,None,2020,1
+Multi-family,,Electricity-Heat pump air,2030,0
+Multi-family,,Electricity-Portable,2030,0
+Multi-family,,None,2030,1
+Single-family,,Electricity-Heat pump air,2030,0
+Single-family,,Electricity-Portable,2030,0
+Single-family,,None,2030,1
+Multi-family,,Electricity-Heat pump air,2040,0
+Multi-family,,Electricity-Portable,2040,0
+Multi-family,,None,2040,1
+Single-family,,Electricity-Heat pump air,2040,0
+Single-family,,Electricity-Portable,2040,0
+Single-family,,None,2040,1

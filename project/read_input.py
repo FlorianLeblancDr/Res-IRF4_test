@@ -189,7 +189,7 @@ def read_stock(config):
         MultiIndex Series with building stock attributes as levels.
     """
 
-    stock = get_pandas(config['building_stock'], lambda x: pd.read_csv(x, index_col=[0, 1, 2, 3, 4, 5, 6, 7, 8]).squeeze()).rename('Stock buildings')
+    stock = get_pandas(config['building_stock'], lambda x: pd.read_csv(x, index_col=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).squeeze()).rename('Stock buildings')
     stock_sum = stock.sum()
 
     stock = stock.reset_index('Heating system')
@@ -238,7 +238,7 @@ def read_stock(config):
     stock = stock.groupby(stock.index.names).sum()
     stock = pd.concat([stock], keys=[True], names=['Existing'])
     idx_names = ['Existing', 'Occupancy status', 'Income owner', 'Income tenant', 'Housing type',
-                 'Heating system', 'Wall', 'Floor', 'Roof', 'Windows']
+                 'Heating system', 'Cooling system', 'Wall', 'Floor', 'Roof', 'Windows']
 
     stock = stock.reorder_levels(idx_names)
     assert_almost_equal(stock.sum(), stock_sum)
@@ -901,6 +901,17 @@ def read_inputs(config, other_inputs=generic_input):
 
     inputs.update({'ms_heater_built': ms_heater_built.fillna(0)})
 
+    # ajout de la climatisation de la même manière
+    temp = get_series(config['switch_heater']['ms_cooler_built'], header=[0])
+    if 'Year' in temp.index.names:
+        # Interpolation over year using last known value
+        start = temp.index.get_level_values('Year').min()
+        ms_cooler_built = temp.unstack('Year').reindex(range(start, config['end']), axis=1)
+        temp_idx = ms_cooler_built.index.names
+        ms_cooler_built = ms_cooler_built.reset_index().interpolate(axis=1, method='pad').set_index(temp_idx)
+    
+    inputs.update({'ms_cooler_built': ms_cooler_built.fillna(0)})
+
     inputs.update({'health_cost_dpe': get_series(config['health_cost_dpe'])})
     inputs.update({'health_cost_income': get_series(config['health_cost_income'])})
 
@@ -1089,8 +1100,28 @@ def parse_inputs(inputs, taxes, config, stock):
     temp = construction.copy()
     construction = (reindex_mi(construction, ms_heater_built.index) * ms_heater_built.T).T
     construction = construction.loc[(construction != 0).any(axis=1)]
+    construction_heating = construction.copy()
+
     construction = construction.stack('Heating system').unstack('Year')
     assert round(temp.sum() - construction.sum().sum(), 0) == 0, 'Construction is not equal to the sum of the heating system'
+
+    # ajout de la climatisation de la même manière que le chauffage
+    ms_cooler_built = inputs['ms_cooler_built'].stack('Year').unstack('Cooling system').fillna(0)
+    restriction_cooler = [k for k, p in config['policies'].items() if p.get('policy') in ['restriction_cooler']]
+    for policy in restriction_cooler:
+        # TODO: coder d'éventuelles restrictions sur l'intégration de climatisation dans les logements neufs
+        pass
+    ms_cooler_built = (ms_cooler_built.T / ms_cooler_built.sum(axis=1)).T
+
+    construction_heating = construction_heating.stack('Heating system')
+    ms_cooler_built = reindex_mi(ms_cooler_built, construction_heating.index)
+    construction_heating = (reindex_mi(construction_heating, ms_cooler_built.index) * ms_cooler_built.T).T
+    construction_heating = construction_heating.loc[(construction_heating != 0).any(axis=1)]
+    construction_heating = construction_heating.stack('Cooling system').unstack('Year')
+    construction_heating = construction_heating.fillna(0)
+
+    construction = construction_heating.copy()
+    assert round(temp.sum() - construction.sum().sum(), 0) == 0, 'Construction is not equal to the sum of the cooling system'
 
     construction_dh = select(construction, {'Heating system': 'Heating-District heating'}).sum()
     parsed_inputs['flow_district_heating'] = parsed_inputs['flow_district_heating'] - construction_dh
