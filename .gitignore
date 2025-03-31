@@ -6,6 +6,7 @@
 .idea
 .env*
 .vscode/
+.~*
 /ResIRF.egg-info/
 /project/test.py
 /project/input/prices/
