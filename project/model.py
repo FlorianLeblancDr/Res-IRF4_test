@@ -268,45 +268,45 @@ def select_post_inputs(parsed_inputs):
     return {key: item for key, item in parsed_inputs.items() if key in vars}
 
 
-def get_inputs(path=None, config=None, variables=None, scenario=None):
-    """Initialize thermal buildings object based on input dictionary.
+# def get_inputs(path=None, config=None, variables=None, scenario=None):
+#     """Initialize thermal buildings object based on input dictionary.
 
-    Parameters
-    ----------
-    path: str, optional
-        If None do not write output.
-    config: dict, optional
-        If config is None use configuration file of Reference scenario
-    variables: list, optional
-        'buildings', 'energy_prices', 'cost_insulation', 'carbon_emission', 'carbon_value_kwh', 'health_cost'
+#     Parameters
+#     ----------
+#     path: str, optional
+#         If None do not write output.
+#     config: dict, optional
+#         If config is None use configuration file of Reference scenario
+#     variables: list, optional
+#         'buildings', 'energy_prices', 'cost_insulation', 'carbon_emission', 'carbon_value_kwh', 'health_cost'
 
-    Returns
-    -------
-    dict
-    """
-    if variables is None:
-        variables = ['buildings', 'energy_prices', 'cost_insulation', 'carbon_emission', 'carbon_value_kwh',
-                     'health_cost', 'income', 'cost_heater', 'health_cost_dpe', 'present_discount_rate',
-                     'efficiency', 'ratio_surface']
+#     Returns
+#     -------
+#     dict
+#     """
+#     if variables is None:
+#         variables = ['buildings', 'energy_prices', 'cost_insulation', 'carbon_emission', 'carbon_value_kwh',
+#                      'health_cost', 'income', 'cost_heater', 'health_cost_dpe', 'present_discount_rate',
+#                      'efficiency', 'ratio_surface']
 
-    config, inputs, stock, year, policies_heater, policies_insulation, taxes = config2inputs(config, scenario=scenario)
-    inputs_dynamics = initialize(inputs, stock, year, taxes, path=path, config=config)
-    output = {'buildings': inputs_dynamics['buildings'],
-              'income': inputs['income'],
-              'energy_prices': inputs_dynamics['energy_prices'],
-              'cost_insulation': inputs_dynamics['cost_insulation'],
-              'cost_heater': inputs_dynamics['cost_heater'],
-              'carbon_emission': inputs_dynamics['post_inputs']['carbon_emission'],
-              'carbon_value_kwh': inputs_dynamics['post_inputs']['carbon_value_kwh'],
-              'efficiency': inputs['efficiency'],
-              'health_cost_dpe': inputs_dynamics['health_cost_dpe'],
-              'present_discount_rate': inputs['preferences']['insulation']['present_discount_rate'],
-              'frequency_insulation': inputs_dynamics['frequency_insulation'],
-              'ratio_surface': inputs['ratio_surface']
-              }
-    output = {k: item for k, item in output.items() if k in variables}
+#     config, inputs, stock, year, policies_heater, policies_insulation, taxes = config2inputs(config, scenario=scenario)
+#     inputs_dynamics = initialize(inputs, stock, year, taxes, path=path, config=config)
+#     output = {'buildings': inputs_dynamics['buildings'],
+#               'income': inputs['income'],
+#               'energy_prices': inputs_dynamics['energy_prices'],
+#               'cost_insulation': inputs_dynamics['cost_insulation'],
+#               'cost_heater': inputs_dynamics['cost_heater'],
+#               'carbon_emission': inputs_dynamics['post_inputs']['carbon_emission'],
+#               'carbon_value_kwh': inputs_dynamics['post_inputs']['carbon_value_kwh'],
+#               'efficiency': inputs['efficiency'],
+#               'health_cost_dpe': inputs_dynamics['health_cost_dpe'],
+#               'present_discount_rate': inputs['preferences']['insulation']['present_discount_rate'],
+#               'frequency_insulation': inputs_dynamics['frequency_insulation'],
+#               'ratio_surface': inputs['ratio_surface']
+#               }
+#     output = {k: item for k, item in output.items() if k in variables}
 
-    return output
+#     return output
 
 
 def initialize(inputs, stock, year, taxes, path=None, config=None, logger=None, level_logger='DEBUG'):
@@ -346,6 +346,7 @@ def initialize(inputs, stock, year, taxes, path=None, config=None, logger=None, 
                                parsed_inputs['income'], parsed_inputs['preferences'],
                                parsed_inputs['performance_insulation_renovation'],
                                lifetime_heater=parsed_inputs['lifetime_heater'],
+                               lifetime_cooler=parsed_inputs['lifetime_cooler'],
                                path=path,
                                year=year,
                                endogenous=config['renovation']['endogenous'],
@@ -455,6 +456,7 @@ def stock_turnover(buildings, prices, taxes, cost_heater, cost_insulation, frequ
         heater_demolition = temp.groupby('Heating system').sum()
         buildings.add_flows([- temp])
     buildings.logger.info('Calculation retrofit')
+
     if output_options == 'full':
         buildings.consumption_before_retrofit = buildings.store_consumption(prices_before,
                                                                             carbon_content_before,
@@ -496,6 +498,7 @@ def stock_turnover(buildings, prices, taxes, cost_heater, cost_insulation, frequ
     if flow_built is not None:
         buildings.add_flows([flow_built])
         new_heating = flow_built.groupby('Heating system').sum()
+        new_cooling = flow_built.groupby('Cooling system').sum()
 
     buildings.logger.info('Writing output')
     if output_options == 'full':
@@ -542,9 +545,11 @@ def stock_turnover(buildings, prices, taxes, cost_heater, cost_insulation, frequ
         for i in switch_heating.index:
             buildings.heater_vintage.loc[i, buildings.lifetime_heater.loc[i]] = switch_heating.loc[i]
 
+        # TODO: ajouter le vieillissement des systèmes de climatisation
+
         # test
-        heating = buildings.stock.groupby('Heating system').sum()
-        temp = pd.concat((heating, buildings.heater_vintage.sum(axis=1)), axis=1)
+        # heating = buildings.stock.groupby('Heating system').sum()
+        # temp = pd.concat((heating, buildings.heater_vintage.sum(axis=1)), axis=1)
 
     return buildings, stock, output
 

@@ -752,6 +752,7 @@ def read_inputs(config, other_inputs=generic_input):
     inputs.update({'temp_sink': get_series(config['technical']['temp_sink'], header=None)})
 
     inputs.update({'lifetime_heater': get_series(config['technical']['lifetime_heater'], header=[0])})
+    inputs.update({'lifetime_cooler': get_series(config['technical']['lifetime_cooler'], header=[0])})
 
     inputs.update({'cost_insulation': get_series(config['technical']['cost_insulation'], header=[0])})
 

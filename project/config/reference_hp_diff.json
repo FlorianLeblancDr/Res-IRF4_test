@@ -57,6 +57,7 @@
       "efficiency": "project/input/technical/efficiency.csv",
       "temp_sink": "project/input/technical/temp_sink.csv",
       "lifetime_heater": "project/input/technical/lifetime_heater.csv",
+      "lifetime_cooler": "project/input/technical/lifetime_cooler.csv",
       "cost_insulation": "project/input/technical/cost_insulation.csv",
       "performance_insulation_renovation": "project/input/technical/performance_insulation_renovation.csv",
       "performance_insulation_construction": "project/input/technical/performance_insulation_construction.csv",

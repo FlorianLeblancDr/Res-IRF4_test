@@ -234,12 +234,12 @@ class ThermalBuildings:
         if energy_level:
             stock = stock.groupby(
                 ['Occupancy status', 'Income owner', 'Income tenant', 'Housing type', 'Heating system',
-                 'Energy', 'Performance']).sum()
+                 'Cooling system', 'Energy', 'Performance']).sum()
 
         else:
             stock = stock.groupby(
                 ['Occupancy status', 'Income owner', 'Income tenant', 'Housing type', 'Heating system',
-                 'Performance']).sum()
+                 'Cooling system', 'Performance']).sum()
 
         stock = stock[stock > 0]
         return stock
@@ -1014,13 +1014,13 @@ class AgentBuildings(ThermalBuildings):
     """
 
     def __init__(self, stock, surface, ratio_surface, efficiency, income, preferences,
-                 performance_insulation_renovation, lifetime_heater=None, path=None, year=2018,
-                 endogenous=True, exogenous=None, expected_utility=None,
+                 performance_insulation_renovation, lifetime_heater=None, lifetime_cooler=None, path=None, 
+                 year=2018, endogenous=True, exogenous=None, expected_utility=None,
                  logger=None, calib_scale=True, quintiles=None,
                  rational_behavior_insulation=None, rational_behavior_heater=None,
                  resources_data=None, detailed_output=True, figures=None,
                  method_health_cost=None, residual_rate=0, constraint_heat_pumps=True,
-                 variable_size_heater=True, temp_sink=None, social_discount_rate=0.032,
+                 variable_size_heater=True, variable_size_cooler=True, temp_sink=None, social_discount_rate=0.032,
                  lifetime_insulation=30, vat_heater=VAT, no_friction=None, belief_engineering_calculation=None
                  ):
         super().__init__(stock, surface, ratio_surface, efficiency, income, path=path, year=year,
@@ -1101,6 +1101,7 @@ class AgentBuildings(ThermalBuildings):
         self._replaced_by = None
         self._only_heater = None
         self._heater_store = {}
+        self._cooler_store = {}
         self._renovation_store = {}
         self._condition_store = None
         self._heating_intensity_avg = None
@@ -1116,6 +1117,7 @@ class AgentBuildings(ThermalBuildings):
             self.no_friction = no_friction
 
         self._variable_size_heater = variable_size_heater
+        self._variable_size_cooler = variable_size_cooler
         self._constraint_heat_pumps = constraint_heat_pumps
 
         self._markup_insulation_store, self._markup_heater_store = 1, 1
@@ -1151,6 +1153,17 @@ class AgentBuildings(ThermalBuildings):
                                   index=range(1, lifetime_heater.loc[i] + 1))})
         self.heater_vintage = DataFrame(heater_vintage).T.rename_axis(index='Heating system', columns='Year')
         self.lifetime_heater = lifetime_heater
+
+        # Initialization of cooling systems lifetime
+        temp = self.stock.groupby('Cooling system').sum()
+        cooler_vintage = dict()
+        for i in lifetime_cooler.index:
+            if i not in temp.index:
+                temp.loc[i] = 0
+            cooler_vintage.update({i: Series([temp.loc[i] / lifetime_cooler.loc[i]] * lifetime_cooler.loc[i],
+                                  index=range(1, lifetime_cooler.loc[i] + 1))})
+        self.cooler_vintage = DataFrame(cooler_vintage).T.rename_axis(index='Cooling system', columns='Year').fillna(0)
+        self.lifetime_cooler = lifetime_cooler
 
         # 'epc', 'heating_intensity'
         if method_health_cost is None:
@@ -2426,31 +2439,31 @@ class AgentBuildings(ThermalBuildings):
         Series
         """
 
-        def apply_rational_choice(_consumption_saved, _subsidies_total, _cost_total, _bill_saved, _carbon_saved,
-                                  _stock, social=False, discount_social=0.032):
+        # def apply_rational_choice(_consumption_saved, _subsidies_total, _cost_total, _bill_saved, _carbon_saved,
+        #                           _stock, social=False, discount_social=0.032):
 
-            if social:
-                _discount = discount_social
+        #     if social:
+        #         _discount = discount_social
 
-            # subsidies do not change market-share
-            _bill_saved[_bill_saved == 0] = float('nan')
+        #     # subsidies do not change market-share
+        #     _bill_saved[_bill_saved == 0] = float('nan')
 
-            ratio = (_cost_total - _subsidies_total) / _bill_saved
-            if social:
-                ratio = (_cost_total - _subsidies_total) / (_bill_saved + _carbon_saved)
+        #     ratio = (_cost_total - _subsidies_total) / _bill_saved
+        #     if social:
+        #         ratio = (_cost_total - _subsidies_total) / (_bill_saved + _carbon_saved)
 
-            best_option = AgentBuildings.find_best_option(ratio, {'consumption_saved': _consumption_saved}, func='min')
-            _market_share = DataFrame(0, index=ratio.index, columns=ratio.columns)
-            for i in _market_share.index:
-                _market_share.loc[i, best_option.loc[i, 'columns']] = 1
+        #     best_option = AgentBuildings.find_best_option(ratio, {'consumption_saved': _consumption_saved}, func='min')
+        #     _market_share = DataFrame(0, index=ratio.index, columns=ratio.columns)
+        #     for i in _market_share.index:
+        #         _market_share.loc[i, best_option.loc[i, 'columns']] = 1
 
-            assert (_market_share.sum(axis=1) == 1).all(), 'Market-share issue'
+        #     assert (_market_share.sum(axis=1) == 1).all(), 'Market-share issue'
 
-            return _market_share
+        #     return _market_share
 
         index = stock.index
 
-        cost_heater_raw = cost_heater.copy()
+        # cost_heater_raw = cost_heater.copy()
 
         probability = self.heater_vintage.loc[:, 1] / self.heater_vintage.sum(axis=1)
         probability.dropna(inplace=True)
