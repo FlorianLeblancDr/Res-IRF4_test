@@ -5310,17 +5310,12 @@ class AgentBuildings(ThermalBuildings):
         for key, item in heater.items():
             output['Stock {} (Million)'.format(key)] = temp[[i for i in item if i in temp.index]].sum() / 10 ** 6
 
-        temp.index = temp.index.map(lambda x: 'Stock {} (Million)'.format(x))
-        output.update(temp.T / 10 ** 6)
-
-        # ajout de la climatisation dans les sorties de Res-IRF
+        # add cooling systems in output
         temp = self.stock.groupby('Cooling system').sum()
-        cooler = {'Electricity-Heat pump air':'Cooling heat pump air' , 
-                  'Electricity-Portable':'Cooling portable unit', 
-                  'None':'No cooling system'}
-        for k,v in cooler.items():
-            if k in temp.index:
-                output['Stock {} (Million)'.format(v)] = temp.loc[k] / 10 ** 6
+        cooler = ['Electricity-Heat pump air', 'Electricity-Portable', 'None']
+        for c in cooler:
+            if c in temp.index:
+                output['Stock AC {} (Million)'.format(c)] = temp.loc[c] / 10 ** 6
 
         # energy expenditures considering back-up cost
         prices_reindex = prices.reindex(self.energy).set_axis(self.stock.index, axis=0)
